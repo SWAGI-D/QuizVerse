@@ -32,23 +32,51 @@ export default function SignUpForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
+ const handleSubmit = async (e: FormEvent) => {
+  e.preventDefault();
+  setError('');
 
-    if (!form.name || !form.email || !form.password || !form.confirm) {
-      return setError('Please fill all fields.');
-    }
-    if (form.password !== form.confirm) {
-      return setError('Passwords do not match.');
+  if (!form.name || !form.email || !form.password || !form.confirm) {
+    return setError('Please fill all fields.');
+  }
+  if (form.password !== form.confirm) {
+    return setError('Passwords do not match.');
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch('http://localhost:5000/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        role: userRole,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create user');
     }
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigate('/role');
-    }, 2000);
-  };
+    const data = await response.json();
+    localStorage.setItem('userId', data.id); // ✅ Save userId for RoleSelection
+
+    console.log('User saved to Firestore:', data);
+
+    // Navigate or save to localStorage as needed
+    navigate('/role');
+  } catch (err) {
+    console.error(err);
+    setError('Signup failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex items-center justify-center px-4 text-white">
