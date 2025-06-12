@@ -17,10 +17,35 @@ interface Role {
 export default function RoleSelection() {
   const navigate = useNavigate();
 
-  const handleSelect = (role: string) => {
-    console.log('Selected Role:', role);
+  const handleSelect = async (role: string) => {
+  console.log('Selected Role:', role);
+  const userId = localStorage.getItem('userId');
+
+  if (!userId) {
+    console.error('No userId found in localStorage');
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:5000/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role }),
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to update user role');
+    }
+
+    console.log('✅ Role updated in Firestore');
     navigate('/dashboard', { state: { role } });
-  };
+  } catch (err) {
+    console.error('❌ Error updating role:', err);
+  }
+};
+
 
   const roles: Role[] = [
     { name: 'Student', icon: <FaUserGraduate />, color: 'from-green-400 to-emerald-600' },
