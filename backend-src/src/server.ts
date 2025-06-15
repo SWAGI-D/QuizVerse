@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 import { db } from './firebase';
 import cors from 'cors';
@@ -6,6 +7,11 @@ import { Quiz } from './types/Quiz';
 import express, { Request, Response } from 'express';
 import admin from 'firebase-admin';
 
+=======
+import express from 'express';
+import { db } from './firebase';
+import cors from 'cors';
+>>>>>>> a7281e8c2b16fbc42c0b293fd1fdf797c75138be
 
 const app = express();
 const PORT = 5000;
@@ -17,8 +23,11 @@ app.use(express.json());
 const asyncHandler = (fn: any) => (req: any, res: any, next: any) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> a7281e8c2b16fbc42c0b293fd1fdf797c75138be
 app.post(
   '/users',
   asyncHandler(async (req: { body: { name: any; email: any; role: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error?: string; name?: any; email?: any; role?: any; createdAt?: Date; id?: string; }): void; new(): any; }; }; }) => {
@@ -66,6 +75,7 @@ app.put(
   )
 );
 
+<<<<<<< HEAD
 app.post(
   '/players',
   asyncHandler(
@@ -278,6 +288,8 @@ app.get(
   })
 );
 
+=======
+>>>>>>> a7281e8c2b16fbc42c0b293fd1fdf797c75138be
 
 
 app.listen(PORT, () => {
