@@ -12,24 +12,37 @@ export default function PlayerJoin() {
   const navigate = useNavigate();
 
   // Join button handler
-  const handleJoin = () => {
-    if (!name || !gameCode) {
-      alert('Please enter name and game code');
-      return;
-    }
+  const handleJoin = async () => {
+  if (!name || !gameCode) {
+    alert('Please enter name and game code');
+    return;
+  }
 
-    const player = {
-      name,
-      gameCode,
-      avatar:
-        avatarType === 'emoji'
-          ? emojiAvatar
-          : `https://api.dicebear.com/6.x/thumbs/svg?seed=${name || 'player'}`,
-    };
+  try {
+    const res = await fetch('http://localhost:5000/players', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        gameCode,
+        avatar:
+          avatarType === 'emoji'
+            ? emojiAvatar
+            : `https://api.dicebear.com/6.x/thumbs/svg?seed=${name || 'player'}`,
+      }),
+    });
 
-    localStorage.setItem('playerInfo', JSON.stringify(player));
+    if (!res.ok) throw new Error('Failed to join game');
+
+    const playerData = await res.json();
+    localStorage.setItem('playerInfo', JSON.stringify(playerData));
     navigate(`/player-lobby/${gameCode}`);
-  };
+  } catch (err) {
+    console.error('Join error:', err);
+    alert('Failed to join game. Try again.');
+  }
+};
+
 
   return (
     <div className="relative min-h-screen w-full bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-hidden flex items-center justify-center px-4 py-12">

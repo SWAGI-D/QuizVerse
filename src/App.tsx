@@ -27,7 +27,7 @@ export default function App(): React.JSX.Element {
         <Route path="/join" element={<PlayerJoin />} />
         <Route path="/player-lobby/:gameCode" element={<PlayerLobby />} />
         <Route path="/host-game/:gameCode/:questionIndex" element={<HostQuestion />} />
-        <Route path="/player-game/:gameCode/:qid" element={<PlayerGamePage />} />
+        <Route path="/player-game/:gameCode" element={<PlayerGamePage />} />
         <Route path="/test-player-game/:gameCode/:qid" element={<FakePlayerQuestion />} />
         <Route path="/scoreboard/:gameCode" element={<Scoreboard />} />
       </Routes>

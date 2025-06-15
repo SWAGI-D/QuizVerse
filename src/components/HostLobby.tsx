@@ -8,21 +8,40 @@ interface Params {
 export default function HostLobby() {
   const { gameCode } = useParams<Record<string, string | undefined>>();
   const navigate = useNavigate();
-  const [players, setPlayers] = useState<string[]>([]); // players is an array of strings
+
+  interface Player {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
+const [players, setPlayers] = useState<Player[]>([]);
+
 
   // Simulate fake player joins
   useEffect(() => {
-    const fakePlayers = ['Alice', 'Bob', 'Charlie', 'David'];
-    let i = 0;
-    const interval = setInterval(() => {
-      if (i < fakePlayers.length) {
-        setPlayers(prev => [...prev, fakePlayers[i++]]);
-      } else {
-        clearInterval(interval);
-      }
-    }, 1500);
-    return () => clearInterval(interval);
-  }, []);
+  const fetchPlayers = async () => {
+    if (!gameCode) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/players/${gameCode}`);
+      if (!res.ok) throw new Error('Failed to fetch players');
+      const data = await res.json();
+      setPlayers(data); // entire player object including avatar
+
+    } catch (err) {
+      console.error('Error loading players:', err);
+    }
+  };
+
+  // Initial fetch
+  fetchPlayers();
+
+  // Poll every 3 seconds
+  const interval = setInterval(fetchPlayers, 3000);
+  return () => clearInterval(interval);
+}, [gameCode]);
+
 
   // Copy game code to clipboard
   const copyCode = () => {
@@ -33,11 +52,36 @@ export default function HostLobby() {
   };
 
   // Start quiz by navigating to first question screen
-  const handleStartGame = () => {
-    if (gameCode) {
-      navigate(`/host-game/${gameCode}/0`);
-    }
-  };
+  const handleStartGame = async () => {
+  if (!gameCode) return;
+
+  try {
+    await fetch(`http://localhost:5000/games/${gameCode}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionIndex: 0 }), // ✅ Initialize game
+    });
+
+    navigate(`/host-game/${gameCode}/0`);
+  } catch (err) {
+    console.error('❌ Failed to start game:', err);
+    alert('Error starting the game.');
+  }
+};
+
+  const handleKick = async (id: string) => {
+  try {
+    await fetch(`http://localhost:5000/players/${id}`, {
+      method: 'DELETE',
+    });
+
+    setPlayers(prev => prev.filter(p => p.id !== id));
+  } catch (err) {
+    console.error('Error kicking player:', err);
+    alert('Failed to remove player. Try again.');
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white px-6 py-10 flex items-center justify-center">
@@ -62,16 +106,33 @@ export default function HostLobby() {
         {players.length === 0 ? (
           <p className="text-center text-gray-300 animate-pulse">Waiting for players to join...</p>
         ) : (
-          <ul className="grid grid-cols-2 gap-4">
-            {players.map((player, idx) => (
-              <li
-                key={idx}
-                className="bg-white/20 p-4 rounded-xl text-center font-semibold text-white shadow hover:scale-105 transition"
-              >
-                🧑 {player}
-              </li>
-            ))}
-          </ul>
+    <ul className="grid grid-cols-2 gap-4">
+  {players.map((player) => (
+    <li
+      key={player.id}
+      className="bg-white/20 p-4 rounded-xl text-center font-semibold text-white shadow hover:scale-105 transition"
+    >
+      {player.avatar.startsWith('http') ? (
+        <img
+          src={player.avatar}
+          alt="avatar"
+          className="w-10 h-10 rounded-full mx-auto mb-2"
+        />
+      ) : (
+        <div className="text-4xl mb-2">{player.avatar}</div>
+      )}
+      🧑 {player.name}
+      <button
+        onClick={() => handleKick(player.id)}
+        className="text-xs text-red-400 hover:text-red-600 mt-1 block"
+      >
+        ❌ Kick
+      </button>
+    </li>
+  ))}
+</ul>
+
+
         )}
 
         {/* Start Game Button */}

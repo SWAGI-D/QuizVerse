@@ -1,4 +1,5 @@
-import { useParams } from 'react-router-dom';
+
+import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 // Define player structure
@@ -11,6 +12,7 @@ interface Player {
 export default function PlayerLobby() {
   const { gameCode } = useParams<Record<string, string>>();
   const [player, setPlayer] = useState<Player | null>(null);
+const navigate = useNavigate();
 
   // Get player info from localStorage when component mounts
   useEffect(() => {
@@ -19,6 +21,29 @@ export default function PlayerLobby() {
       setPlayer(JSON.parse(saved));
     }
   }, []);
+
+  useEffect(() => {
+  if (!gameCode) return;
+
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/games/${gameCode}`);
+      const data = await res.json();
+      console.log('📡 Polled game state:', data); // 🔍 DEBUG
+
+      if (data?.questionIndex !== undefined && data.questionIndex >= 0) {
+        clearInterval(interval);
+        navigate(`/player-game/${gameCode}`);
+      }
+    } catch (err) {
+      console.error('❌ Failed to check game status:', err);
+    }
+  }, 3000);
+
+  return () => clearInterval(interval);
+}, [gameCode, navigate]);
+
+
 
   return (
     <div className="relative min-h-screen w-full bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-hidden flex items-center justify-center px-4 py-12">

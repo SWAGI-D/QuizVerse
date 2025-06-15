@@ -15,6 +15,8 @@ interface Quiz {
   questions: Question[];
 }
 
+
+
 export default function HostQuestion() {
   const { gameCode, questionIndex } = useParams<Record<string, string>>();
   const navigate = useNavigate();
@@ -22,20 +24,44 @@ export default function HostQuestion() {
   const [question, setQuestion] = useState<Question | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(30);
 
-  // Load quiz and current question
-  useEffect(() => {
-    if (!gameCode || !questionIndex) return;
+  const updateQuestionIndex = async (index: number) => {
+  try {
+    await fetch(`http://localhost:5000/games/${gameCode}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ questionIndex: index }),
+    });
+  } catch (err) {
+    console.error('❌ Failed to update game state:', err);
+  }
+};
 
-    const saved = localStorage.getItem(`quiz-${gameCode}`);
-    if (saved) {
-      const parsed: Quiz = JSON.parse(saved);
+
+  // Load quiz and current question
+ useEffect(() => {
+  if (!gameCode || !questionIndex) return;
+
+  const fetchQuiz = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/quizzes/${gameCode}`);
+      const data = await res.json();
       const qIndex = parseInt(questionIndex);
-      setQuiz(parsed);
-      const currentQuestion = parsed.questions[qIndex];
-      setQuestion(currentQuestion);
-      setTimeLeft(currentQuestion?.timerInSeconds ?? 30);
+      setQuiz(data);
+      setQuestion(data.questions[qIndex]);
+      setTimeLeft(data.questions[qIndex]?.timerInSeconds ?? 30);
+
+      // Also update Firestore with current index when host loads directly
+      await updateQuestionIndex(qIndex);
+    } catch (err) {
+      console.error('❌ Failed to fetch quiz:', err);
     }
-  }, [gameCode, questionIndex]);
+  };
+
+  fetchQuiz();
+}, [gameCode, questionIndex]);
+
 
   // Timer countdown
   useEffect(() => {
@@ -45,16 +71,18 @@ export default function HostQuestion() {
   }, [timeLeft]);
 
   // Go to next question
-  const handleNext = () => {
-    if (!questionIndex || !quiz || !gameCode) return;
+  const handleNext = async () => {
+  if (!questionIndex || !quiz || !gameCode) return;
 
-    const nextIndex = parseInt(questionIndex) + 1;
-    if (nextIndex < quiz.questions.length) {
-      navigate(`/host-game/${gameCode}/${nextIndex}`);
-    } else {
-      navigate(`/scoreboard/${gameCode}`);
-    }
-  };
+  const nextIndex = parseInt(questionIndex) + 1;
+  if (nextIndex < quiz.questions.length) {
+    await updateQuestionIndex(nextIndex); // 🧠 sync for players
+    navigate(`/host-game/${gameCode}/${nextIndex}`);
+  } else {
+    navigate(`/scoreboard/${gameCode}`);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex flex-col items-center justify-center p-6">

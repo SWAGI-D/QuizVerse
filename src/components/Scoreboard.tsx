@@ -1,25 +1,46 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-// Define player type
-interface Player {
+// Define answer record structure
+interface AnswerRecord {
   name: string;
   score: number;
 }
 
+interface PlayerScore {
+  name: string;
+  total: number;
+}
+
 export default function Scoreboard() {
   const navigate = useNavigate();
+  const { gameCode } = useParams<{ gameCode: string }>();
+  const [scores, setScores] = useState<PlayerScore[]>([]);
 
-  // 🧪 Fake final scores
-  const players: Player[] = [
-    { name: 'Alice', score: 150 },
-    { name: 'Bob', score: 130 },
-    { name: 'Charlie', score: 100 },
-    { name: 'David', score: 90 },
-  ];
+  useEffect(() => {
+    const fetchScores = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/scoreboard/${gameCode}`);
 
-  // Sort by score descending
-  const sorted = [...players].sort((a, b) => b.score - a.score);
+        if (!res.ok) throw new Error('Failed to load scores');
+        const data: AnswerRecord[] = await res.json();
+
+        // Group and sum scores per player
+        const scoreMap = new Map<string, number>();
+        for (const record of data) {
+          scoreMap.set(record.name, (scoreMap.get(record.name) || 0) + record.score);
+        }
+
+        const combined: PlayerScore[] = Array.from(scoreMap, ([name, total]) => ({ name, total }));
+        combined.sort((a, b) => b.total - a.total);
+        setScores(combined);
+      } catch (err) {
+        console.error('❌ Error fetching scoreboard:', err);
+      }
+    };
+
+    fetchScores();
+  }, [gameCode]);
 
   const medals = ['🥇', '🥈', '🥉'];
 
@@ -28,7 +49,7 @@ export default function Scoreboard() {
       <h1 className="text-4xl font-bold mb-8 text-center">🏆 Final Scoreboard</h1>
 
       <div className="w-full max-w-2xl space-y-4">
-        {sorted.map((player, idx) => (
+        {scores.map((player, idx) => (
           <div
             key={idx}
             className={`flex items-center justify-between px-6 py-4 rounded-xl shadow-lg transition
@@ -46,7 +67,7 @@ export default function Scoreboard() {
               {idx < 3 && <span className="text-2xl">{medals[idx]}</span>}
               {player.name}
             </div>
-            <div className="text-xl font-bold">{player.score} pts</div>
+            <div className="text-xl font-bold">{player.total} pts</div>
           </div>
         ))}
       </div>

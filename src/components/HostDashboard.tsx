@@ -94,7 +94,14 @@ export default function HostDashboard(): React.JSX.Element {
   };
 
   // Save quiz and redirect to host lobby
-  const handleSaveQuiz = (): void => {
+  const handleSaveQuiz = async (): Promise<void> => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert('User not found. Please sign up again.');
+      return;
+    }
+
+
     if (questions.length === 0) {
       alert("Add at least one question before saving the quiz.");
       return;
@@ -107,7 +114,23 @@ export default function HostDashboard(): React.JSX.Element {
       questions,
     };
 
-    localStorage.setItem(`quiz-${quizCode}`, JSON.stringify(quizData));
+    const response = await fetch('http://localhost:5000/quizzes', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    code: quizCode,
+    createdAt: new Date().toISOString(),
+    createdBy: userId,
+    questions,
+  }),
+});
+
+if (!response.ok) {
+  alert('Failed to save quiz. Try again.');
+  return;
+}
+
+
     setGameCode(quizCode);
     alert(`✅ Quiz saved! Game code: ${quizCode}`);
     navigate(`/host-lobby/${quizCode}`);
