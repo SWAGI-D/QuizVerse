@@ -36,7 +36,7 @@ export default function HeroSection(): React.JSX.Element {
             Join Game
           </button>
           </Link>
-          <Link to="/signup">
+          <Link to="/auth">
             <button className="bg-blue-600 hover:bg-blue-700 transition text-white font-semibold py-3 px-6 rounded-full shadow-lg">
               Host Game
             </button>

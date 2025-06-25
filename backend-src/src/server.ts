@@ -4,6 +4,7 @@ import cors from 'cors';
 import admin from 'firebase-admin';
 import { Player } from './types/Player';
 import { Quiz } from './types/Quiz';
+import bcrypt from 'bcryptjs';
 
 const app = express();
 const PORT = 5000;
@@ -11,21 +12,19 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// ✅ simple async handler wrapper
 const asyncHandler = (fn: any) => (req: any, res: any, next: any) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
-// ✅ All routes below
-
 app.post(
   '/users',
-  asyncHandler(async (req: { body: { name: any; email: any; role: any } }, res: Response) => {
-    const { name, email, role } = req.body;
-    if (!name || !email || !role) {
+  asyncHandler(async (req: { body: { name: any; email: any; role: any; password: any } }, res: Response) => {
+    const { name, email, role, password } = req.body;
+    if (!name || !email || !role || !password) {
       return res.status(400).json({ error: 'Missing fields' });
     }
 
-    const userData = { name, email, role, createdAt: new Date() };
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userData = { name, email, role, password: hashedPassword, createdAt: new Date() };
     const ref = await db.collection('users').add(userData);
     res.status(201).json({ id: ref.id, ...userData });
   })
@@ -45,6 +44,58 @@ app.put(
       console.error('❌ Firestore update error:', error);
       res.status(500).json({ error: 'Failed to update user role' });
     }
+  })
+);
+
+app.get(
+  '/users/email/:email',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.params;
+
+    const snapshot = await db
+      .collection('users')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return res.status(404).json({ error: 'User not found' });
+
+    const doc = snapshot.docs[0];
+    res.status(200).json({ id: doc.id, ...doc.data() });
+  })
+);
+
+app.post(
+  '/auth/login',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
+    const snapshot = await db
+      .collection('users')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const doc = snapshot.docs[0];
+    const user = doc.data();
+    const userId = doc.id;
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Incorrect password' });
+    }
+
+    res.status(200).json({
+      id: userId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
   })
 );
 
@@ -75,12 +126,13 @@ app.post(
 app.post(
   '/quizzes',
   asyncHandler(async (req: { body: Quiz }, res: Response) => {
-    const { code, createdAt, createdBy, questions } = req.body;
-    if (!code || !createdBy || !questions || questions.length === 0) {
+    const { title, code, createdAt, createdBy, questions } = req.body;
+    if (!title || !code || !createdBy || !questions || questions.length === 0) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     const quizData: Quiz = {
+      title,
       code,
       createdAt: new Date(createdAt),
       createdBy,
@@ -88,6 +140,7 @@ app.post(
     };
 
     const ref = await db.collection('quizzes').add(quizData);
+    await ref.update({ id: ref.id });
     res.status(201).json({ id: ref.id, ...quizData });
   })
 );
@@ -121,7 +174,7 @@ app.delete(
 );
 
 app.get(
-  '/quizzes/:code',
+  '/quizzes/code/:code',
   asyncHandler(async (req: { params: { code: string } }, res: Response) => {
     const snapshot = await db
       .collection('quizzes')
@@ -138,6 +191,26 @@ app.get(
   })
 );
 
+app.post('/games', async (req, res) => {
+  const { code, quizId, questionIndex } = req.body;
+
+  try {
+    const gameRef = db.collection('games').doc(code);
+    await gameRef.set({
+      code,
+      quizId,
+      questionIndex,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.status(200).send({ message: 'Game session created', code });
+  } catch (err) {
+    console.error('Error creating game:', err);
+    res.status(500).send({ error: 'Failed to create game session' });
+  }
+});
+
+
 app.patch(
   '/games/:code',
   asyncHandler(async (req: { params: { code: string }; body: { questionIndex: number } }, res: Response) => {
@@ -148,6 +221,8 @@ app.patch(
     res.status(200).json({ message: 'Question index updated' });
   })
 );
+
+
 
 app.get(
   '/games/:gameCode',
@@ -219,6 +294,51 @@ app.get(
     }));
 
     res.status(200).json(scoreboard.sort((a, b) => b.score - a.score));
+  })
+);
+
+app.get('/quizzes/host/:hostId', async (req, res) => {
+  try {
+    const snapshot = await db
+      .collection('quizzes')
+      .where('createdBy', '==', req.params.hostId)
+      .get();
+
+    const quizzes = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    res.status(200).json(quizzes);
+  } catch (err) {
+    console.error('Failed to fetch quizzes:', err);
+    res.status(500).json({ error: 'Failed to fetch quizzes' });
+  }
+});
+
+app.get(
+  '/quizzes/:id',
+  asyncHandler(async (req: { params: { id: any } }, res: Response) => {
+    const { id } = req.params;
+    const doc = await db.collection('quizzes').doc(id).get();
+    if (!doc.exists) return res.status(404).json({ error: 'Quiz not found' });
+
+    res.status(200).json({ id: doc.id, ...doc.data() });
+  })
+);
+
+app.delete(
+  '/quizzes/:id',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+      await db.collection('quizzes').doc(id).delete();
+      res.status(200).json({ message: 'Quiz deleted' });
+    } catch (err) {
+      console.error('Failed to delete quiz:', err);
+      res.status(500).json({ error: 'Failed to delete quiz' });
+    }
   })
 );
 

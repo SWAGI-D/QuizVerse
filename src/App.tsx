@@ -13,6 +13,10 @@ import Scoreboard from './components/Scoreboard';
 import React from 'react';
 import PlayerGamePage from './components/PlayerGamePage';
 import Dashboard from './components/Dashboard';
+import PlayerScoreboard from './components/PlayerScoreboard';
+import QuizPreview from './components/QuizPreview';
+import AuthPage from './components/AuthPage';
+import LoginForm from './components/LoginForm';
 
 export default function App(): React.JSX.Element {
   return (
@@ -21,7 +25,10 @@ export default function App(): React.JSX.Element {
         <Route path="/" element={<HeroSection />} />
         <Route path="/role" element={<RoleSelection />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/host/preview/:id" element={<QuizPreview />} />
         <Route path="/host" element={<HostDashboard />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/login" element={<LoginForm />} />
         <Route path="/signup" element={<SignUpForm />} />
         <Route path="/host-lobby/:gameCode" element={<HostLobby />} />
         <Route path="/join" element={<PlayerJoin />} />
@@ -30,6 +37,7 @@ export default function App(): React.JSX.Element {
         <Route path="/player-game/:gameCode" element={<PlayerGamePage />} />
         <Route path="/test-player-game/:gameCode/:qid" element={<FakePlayerQuestion />} />
         <Route path="/scoreboard/:gameCode" element={<Scoreboard />} />
+        <Route path="/player/:gameCode/scoreboard" element={<PlayerScoreboard />} />
       </Routes>
     </Router>
   );

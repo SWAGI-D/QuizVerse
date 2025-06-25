@@ -7,6 +7,7 @@ export interface Question {
 }
 
 export interface Quiz {
+  title: string;
   code: string;
   createdAt: Date;
   createdBy: string; // Firestore user ID

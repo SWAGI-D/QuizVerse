@@ -12,7 +12,8 @@ interface Player {
 export default function PlayerLobby() {
   const { gameCode } = useParams<Record<string, string>>();
   const [player, setPlayer] = useState<Player | null>(null);
-const navigate = useNavigate();
+  const [quizTitle, setQuizTitle] = useState<string>(''); 
+  const navigate = useNavigate();
 
   // Get player info from localStorage when component mounts
   useEffect(() => {
@@ -21,6 +22,24 @@ const navigate = useNavigate();
       setPlayer(JSON.parse(saved));
     }
   }, []);
+
+  useEffect(() => {
+  if (!gameCode) return;
+
+  const fetchQuizTitle = async () => {
+  try {
+    const res = await fetch(`http://localhost:5000/quizzes/code/${gameCode}`);
+    const data = await res.json();
+    setQuizTitle(data.title || '');
+  } catch (err) {
+    console.error('❌ Failed to fetch quiz title:', err);
+  }
+};
+
+
+  fetchQuizTitle();
+}, [gameCode]);
+
 
   useEffect(() => {
   if (!gameCode) return;
@@ -62,6 +81,14 @@ const navigate = useNavigate();
         <div className="text-2xl font-bold bg-white text-black px-4 py-2 inline-block rounded-lg mb-6">
           {gameCode}
         </div>
+
+        {quizTitle && (
+  <>
+    <p className="text-sm text-gray-300 mb-1">Quiz Title:</p>
+    <div className="text-lg font-semibold mb-4 text-white">{quizTitle}</div>
+  </>
+)}
+
 
         {/* Player avatar + name */}
         {player && (

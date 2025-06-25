@@ -12,6 +12,7 @@ interface Question {
 
 // Define the Quiz data structure
 interface QuizData {
+  title: string;
   code: string;
   createdAt: string;
   questions: Question[];
@@ -21,6 +22,7 @@ export default function HostDashboard(): React.JSX.Element {
   const navigate = useNavigate();
 
   // State for all quiz questions
+  const [quizTitle, setQuizTitle] = useState<string>('');
   const [questions, setQuestions] = useState<Question[]>([]);
 
   // Form inputs for creating/editing a question
@@ -101,6 +103,11 @@ export default function HostDashboard(): React.JSX.Element {
       return;
     }
 
+    if (!quizTitle.trim()) {
+    alert('Quiz title is required.');
+    return;
+    }
+
 
     if (questions.length === 0) {
       alert("Add at least one question before saving the quiz.");
@@ -109,6 +116,7 @@ export default function HostDashboard(): React.JSX.Element {
 
     const quizCode = generateGameCode();
     const quizData: QuizData = {
+      title: quizTitle,
       code: quizCode,
       createdAt: new Date().toISOString(),
       questions,
@@ -118,6 +126,7 @@ export default function HostDashboard(): React.JSX.Element {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
+    title: quizTitle,
     code: quizCode,
     createdAt: new Date().toISOString(),
     createdBy: userId,
@@ -139,6 +148,14 @@ if (!response.ok) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white px-6 py-10">
       <h1 className="text-4xl font-bold mb-8 text-center">📋 Host Dashboard – Create Your Quiz</h1>
+      <label className="block mb-2 font-semibold">Quiz Title:</label>
+      <input
+      type="text"
+      value={quizTitle}
+      onChange={(e) => setQuizTitle(e.target.value)}
+      className="w-full p-3 rounded-xl bg-white/10 text-white mb-6 focus:outline-none focus:ring-2 focus:ring-purple-500"
+      placeholder="Enter quiz title (e.g., Science Trivia)"
+      />
 
       {/* Question creation form */}
       <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-xl max-w-3xl mx-auto mb-8">
