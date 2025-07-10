@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Toast from './Toast';
 
 // Define answer record structure
 interface AnswerRecord {
@@ -16,6 +17,8 @@ export default function Scoreboard() {
   const navigate = useNavigate();
   const { gameCode } = useParams<{ gameCode: string }>();
   const [scores, setScores] = useState<PlayerScore[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
 
   useEffect(() => {
     const fetchScores = async () => {
@@ -80,12 +83,27 @@ export default function Scoreboard() {
           🔁 Play Again
         </button>
         <button
-          onClick={() => alert('Thanks for playing!')}
-          className="bg-red-500 hover:bg-red-600 px-6 py-3 text-white rounded-full text-lg shadow transition"
-        >
-          🚪 Exit
-        </button>
+  onClick={() => {
+    setToast({ message: 'Exiting to Dashboard...', type: 'info' });
+    setTimeout(() => {
+      setToast(null);
+      navigate('/dashboard');
+    }, 2000);
+  }}
+  className="bg-red-500 hover:bg-red-600 px-6 py-3 text-white rounded-full text-lg shadow transition"
+>
+  🚪 Exit
+</button>
+
+
       </div>
+      {toast && (
+  <Toast
+    message={toast.message}
+    type={toast.type}
+    onClose={() => setToast(null)}
+  />
+)}
     </div>
   );
 }

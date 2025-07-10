@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import Toast from './Toast';
 
 interface PlayerScore {
   id: string;
@@ -9,48 +10,72 @@ interface PlayerScore {
   score: number;
 }
 
-const PlayerScoreboard: React.FC = () => {
+export default function Scoreboard() {
+  const navigate = useNavigate();
   const { gameCode } = useParams<{ gameCode: string }>();
   const [scores, setScores] = useState<PlayerScore[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   useEffect(() => {
-    const fetchScoreboard = async () => {
-      try {
-         const res = await axios.get(`http://localhost:5000/scoreboard/${gameCode}`);
-        setScores(res.data as PlayerScore[]);
-      } catch (err) {
-        console.error('Error fetching scoreboard:', err);
-      }
-    };
-
-    fetchScoreboard();
+    axios
+      .get<PlayerScore[]>(`http://localhost:5000/scoreboard/${gameCode}`)
+      .then(res => setScores(res.data))
+      .catch(err => console.error('❌ Error fetching scoreboard:', err));
   }, [gameCode]);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-800 flex flex-col items-center justify-center p-6 text-white">
-      <h1 className="text-4xl font-extrabold mb-8 tracking-wide text-center drop-shadow-lg">🏆 Final Scoreboard</h1>
+  const medals = ['🥇', '🥈', '🥉'];
 
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <ul className="divide-y divide-gray-300">
-          {scores.map((p, i) => (
-            <li
-              key={p.id}
-              className={`flex justify-between items-center px-6 py-4 text-gray-800 font-semibold text-lg ${
-                i === 0 ? 'bg-yellow-100' : i === 1 ? 'bg-gray-100' : i === 2 ? 'bg-orange-100' : ''
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl font-bold">{i + 1}</span>
-                <span>{p.avatar}</span>
-                <span>{p.name}</span>
-              </div>
-              <div className="text-xl font-bold">{p.score} pts</div>
-            </li>
-          ))}
-        </ul>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-800 to-purple-500 text-white px-6 py-12 flex flex-col items-center">
+      <h1 className="text-4xl font-extrabold mb-8 drop-shadow-lg">🏆 Final Scoreboard</h1>
+
+      <div className="w-full max-w-xl bg-purple-900/30 p-6 rounded-2xl shadow-lg space-y-4">
+        {scores.map((p, i) => (
+          <div
+            key={p.id}
+            className={`flex justify-between items-center p-4 rounded-xl transition ${
+              i === 0
+                ? 'bg-purple-700'
+                : i === 1
+                ? 'bg-purple-800'
+                : i === 2
+                ? 'bg-purple-600'
+                : 'bg-purple-900/50'
+            }`}
+          >
+            <div className="flex items-center gap-4">
+              {i < 3 && <span className="text-2xl">{medals[i]}</span>}
+              <span className="flex items-center gap-2 text-lg">
+                {p.avatar} {p.name}
+              </span>
+            </div>
+            <span className="text-2xl font-bold">{p.score} pts</span>
+          </div>
+        ))}
       </div>
+
+      <div className="mt-10 flex gap-6">
+        <button
+          onClick={() => navigate('/')}
+          className="bg-green-500 hover:bg-green-600 px-6 py-3 rounded-full font-semibold"
+        >
+          🔁 Play Again
+        </button>
+        <button
+          onClick={() => {
+            setToast({ message: 'Exiting to Dashboard...', type: 'info' });
+            setTimeout(() => {
+              setToast(null);
+              navigate('/dashboard');
+            }, 2000);
+          }}
+          className="bg-red-500 hover:bg-red-600 px-6 py-3 rounded-full font-semibold"
+        >
+          🚪 Exit
+        </button>
+      </div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
-};
-
-export default PlayerScoreboard;
+}

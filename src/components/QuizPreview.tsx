@@ -32,7 +32,8 @@ export default function QuizPreview() {
       questionIndex: -1,
     });
 
-    navigate(`/host-game/${gameCode}/0`);
+   navigate(`/host-lobby/${gameCode}`);
+
   } catch (err) {
     console.error('❌ Failed to host quiz:', err);
     setError('Unable to start hosting session.');
@@ -59,6 +60,7 @@ export default function QuizPreview() {
 >
   🚀 Host This Quiz
 </button>
+
 
       <div className="space-y-4">
         {quiz.questions?.length > 0 ? (

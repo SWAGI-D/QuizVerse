@@ -5,6 +5,7 @@ import admin from 'firebase-admin';
 import { Player } from './types/Player';
 import { Quiz } from './types/Quiz';
 import bcrypt from 'bcryptjs';
+import axios from 'axios';
 
 const app = express();
 const PORT = 5000;
@@ -64,6 +65,8 @@ app.get(
     res.status(200).json({ id: doc.id, ...doc.data() });
   })
 );
+
+
 
 app.post(
   '/auth/login',
@@ -197,11 +200,14 @@ app.post('/games', async (req, res) => {
   try {
     const gameRef = db.collection('games').doc(code);
     await gameRef.set({
-      code,
-      quizId,
-      questionIndex,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+  code,
+  quizId,
+  questionIndex,
+  showScoreboard: true,
+  createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  gameEnded: false, // ✅ added here
+});
+
 
     res.status(200).send({ message: 'Game session created', code });
   } catch (err) {
@@ -213,13 +219,14 @@ app.post('/games', async (req, res) => {
 
 app.patch(
   '/games/:code',
-  asyncHandler(async (req: { params: { code: string }; body: { questionIndex: number } }, res: Response) => {
-    const { code } = req.params;
-    const { questionIndex } = req.body;
+  asyncHandler(async (req: Request, res: Response) => {
+  const { code } = req.params;
+  const updates = req.body;
 
-    await db.collection('games').doc(code).set({ questionIndex }, { merge: true });
-    res.status(200).json({ message: 'Question index updated' });
-  })
+  await db.collection('games').doc(code).set(updates, { merge: true });
+  res.status(200).json({ message: 'Game updated' });
+})
+
 );
 
 
@@ -234,7 +241,8 @@ app.get(
       if (!gameRef.exists) return res.status(404).json({ error: 'Game not found' });
 
       const gameData = gameRef.data();
-      res.status(200).json({ questionIndex: gameData?.questionIndex });
+      res.status(200).json(gameData);
+
     } catch (err) {
       console.error('Error fetching game:', err);
       res.status(500).json({ error: 'Server error' });
@@ -269,33 +277,44 @@ app.post(
 app.get(
   '/scoreboard/:gameCode',
   asyncHandler(async (req: Request, res: Response) => {
+    // 1) grab all answers for this game
     const snapshot = await db
       .collection('answers')
       .where('gameCode', '==', req.params.gameCode)
       .get();
 
+    // 2) build up a true numeric total per player
     const totals: Record<string, number> = {};
     snapshot.forEach((doc) => {
-      const { playerId, score } = doc.data();
-      if (!totals[playerId]) totals[playerId] = 0;
-      totals[playerId] += score || 0;
+      const { playerId, score } = doc.data() as { playerId: string; score: number };
+      // initialize once
+      if (!(playerId in totals)) totals[playerId] = 0;
+      // always add the actual score (even if it’s 0 or negative)
+      totals[playerId] += score;
     });
 
+    // 3) fetch the players in this game and join with our totals
     const playersSnapshot = await db
       .collection('players')
       .where('gameCode', '==', req.params.gameCode)
       .get();
 
-    const scoreboard = playersSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      name: doc.data().name,
-      avatar: doc.data().avatar,
-      score: totals[doc.id] || 0,
-    }));
+    const scoreboard = playersSnapshot.docs.map((doc) => {
+      const pid = doc.id;
+      const data = doc.data();
+      return {
+        id: pid,
+        name: data.name,
+        avatar: data.avatar,
+        score: totals[pid] ?? 0,
+      };
+    });
 
+    // 4) sort descending and return
     res.status(200).json(scoreboard.sort((a, b) => b.score - a.score));
   })
 );
+
 
 app.get('/quizzes/host/:hostId', async (req, res) => {
   try {
@@ -341,6 +360,44 @@ app.delete(
     }
   })
 );
+
+app.post(
+  '/generate-mcqs',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { text } = req.body;
+    const prompt = `make 5 mcqs just from the following text:\n${text}`;
+
+    try {
+      // const response = await fetch('https://9d76-34-16-140-236.ngrok-free.app/generate', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/x-www-form-urlencoded',
+      //   },
+      //   body: new URLSearchParams({ prompt }),
+      // });
+      const response = await fetch('http://localhost:5001/generate', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  },
+  body: new URLSearchParams({ prompt }),
+});
+
+
+      if (!response.ok) {
+        throw new Error(`MCQ generation failed: ${response.statusText}`);
+      }
+
+      const mcqText = await response.text();
+      res.status(200).json({ mcq_raw: mcqText });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('❌ MCQ generation error:', message);
+      res.status(500).json({ error: 'MCQ generation failed', details: message });
+    }
+  })
+);
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);

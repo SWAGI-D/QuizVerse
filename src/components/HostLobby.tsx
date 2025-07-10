@@ -16,10 +16,22 @@ export default function HostLobby() {
 }
 
 const [players, setPlayers] = useState<Player[]>([]);
+const [quizTitle, setQuizTitle] = useState('');
 
 
   // Simulate fake player joins
   useEffect(() => {
+    const fetchQuizTitle = async () => {
+  const gameRes = await fetch(`http://localhost:5000/games/${gameCode}`);
+  const gameData = await gameRes.json();
+
+  const quizRes = await fetch(`http://localhost:5000/quizzes/${gameData.quizId}`);
+  const quiz = await quizRes.json();
+  setQuizTitle(quiz.title);
+};
+
+fetchQuizTitle();
+
   const fetchPlayers = async () => {
     if (!gameCode) return;
 
@@ -52,14 +64,14 @@ const [players, setPlayers] = useState<Player[]>([]);
   };
 
   // Start quiz by navigating to first question screen
-  const handleStartGame = async () => {
+const handleStartGame = async () => {
   if (!gameCode) return;
 
   try {
     await fetch(`http://localhost:5000/games/${gameCode}`, {
-      method: 'PUT',
+      method: 'PATCH', // <-- not PUT
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questionIndex: 0 }), // ✅ Initialize game
+      body: JSON.stringify({ questionIndex: 0, showScoreboard: false }),
     });
 
     navigate(`/host-game/${gameCode}/0`);
@@ -68,6 +80,7 @@ const [players, setPlayers] = useState<Player[]>([]);
     alert('Error starting the game.');
   }
 };
+
 
   const handleKick = async (id: string) => {
   try {
@@ -88,6 +101,10 @@ const [players, setPlayers] = useState<Player[]>([]);
       {/* Lobby Card */}
       <div className="w-full max-w-3xl bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-2xl">
         <h1 className="text-4xl font-bold text-center mb-6">🎮 Host Lobby</h1>
+        <h2 className="text-xl font-semibold mb-2 text-white">
+  🧠 Hosting Quiz: <span className="text-yellow-300">{quizTitle}</span>
+</h2>
+
 
         <p className="text-lg text-center mb-2">Share this game code with players:</p>
         <div className="flex justify-center items-center gap-4 mb-6">

@@ -62,6 +62,13 @@ export default function Dashboard() {
           >
             📋 Choose a Template
           </button>
+
+           <button
+    onClick={() => navigate('/generate')}
+    className="bg-indigo-500 hover:bg-indigo-600 p-6 rounded-xl font-bold text-lg shadow-md transition"
+  >
+    🤖 Generate from Text
+  </button>
         </div>
 
         {/* Recent Quizzes */}
@@ -89,6 +96,7 @@ export default function Dashboard() {
                     >
                       👁️ Preview
                     </button>
+                   
                     <button
                       onClick={async () => {
                         try {

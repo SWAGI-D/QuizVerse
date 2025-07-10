@@ -102,13 +102,19 @@ export default function PlayerQuestion({
       {question?.type === 'oneword' && (
         <div className="mb-8 w-full max-w-md">
           <input
-            type="text"
-            value={selectedAnswer || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSelect(e.target.value)}
-            disabled={!!selectedAnswer || showCorrectAnswer}
-            placeholder="Type your answer"
-            className="w-full p-4 rounded-xl bg-white/10 text-white placeholder:text-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
+  type="text"
+  placeholder="Type your answer and press Enter"
+  disabled={!!selectedAnswer || showCorrectAnswer}
+  className="w-full p-4 rounded-xl bg-white/10 text-white placeholder:text-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const value = (e.target as HTMLInputElement).value.trim();
+      if (value) onSelect(value);
+    }
+  }}
+/>
+
           {showCorrectAnswer && (
             <p className="text-green-300 mt-3 font-semibold text-center">
               ✅ Correct Answer: <span className="font-bold">{correctAnswer}</span>

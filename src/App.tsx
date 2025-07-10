@@ -17,6 +17,8 @@ import PlayerScoreboard from './components/PlayerScoreboard';
 import QuizPreview from './components/QuizPreview';
 import AuthPage from './components/AuthPage';
 import LoginForm from './components/LoginForm';
+import TemplateGallery from './components/TemplateGallery'
+
 
 export default function App(): React.JSX.Element {
   return (
@@ -38,6 +40,8 @@ export default function App(): React.JSX.Element {
         <Route path="/test-player-game/:gameCode/:qid" element={<FakePlayerQuestion />} />
         <Route path="/scoreboard/:gameCode" element={<Scoreboard />} />
         <Route path="/player/:gameCode/scoreboard" element={<PlayerScoreboard />} />
+        <Route path="/template-gallery" element={<TemplateGallery />} />
+
       </Routes>
     </Router>
   );
