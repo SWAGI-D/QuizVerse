@@ -3,7 +3,7 @@ import { db } from './firebase';
 import cors from 'cors';
 import admin from 'firebase-admin';
 import { Player } from './types/Player';
-import { Quiz } from './types/Quiz';
+import { Question, Quiz } from './types/Quiz';
 import bcrypt from 'bcryptjs';
 import axios from 'axios';
 
@@ -123,6 +123,8 @@ app.post(
     const playerData: Player = { name, gameCode, avatar, joinedAt: new Date() };
     const ref = await db.collection('players').add(playerData);
     res.status(201).json({ id: ref.id, ...playerData });
+
+    
   })
 );
 
@@ -147,6 +149,8 @@ app.post(
     res.status(201).json({ id: ref.id, ...quizData });
   })
 );
+
+    
 
 app.get(
   '/players/:gameCode',
@@ -250,68 +254,162 @@ app.get(
   })
 );
 
+// app.post(
+//   '/answers',
+//   asyncHandler(async (req: { body: { playerId: string; gameCode: string; questionText: string; selectedAnswer: string; isCorrect: boolean; score: number } }, res: Response) => {
+//     const { playerId, gameCode, questionText, selectedAnswer, isCorrect, score } = req.body;
+
+//     if (!playerId || !gameCode || !questionText || !selectedAnswer) {
+//       return res.status(400).json({ error: 'Missing fields in answer submission' });
+//     }
+
+//     const data = {
+//       playerId,
+//       gameCode,
+//       questionText,
+//       selectedAnswer,
+//       isCorrect,
+//       score,
+//       answeredAt: new Date(),
+//     };
+
+//     const ref = await db.collection('answers').add(data);
+//     res.status(201).json({ id: ref.id, ...data });
+//   })
+// );
+
+// …
+
 app.post(
   '/answers',
-  asyncHandler(async (req: { body: { playerId: string; gameCode: string; questionText: string; selectedAnswer: string; isCorrect: boolean; score: number } }, res: Response) => {
-    const { playerId, gameCode, questionText, selectedAnswer, isCorrect, score } = req.body;
-
-    if (!playerId || !gameCode || !questionText || !selectedAnswer) {
-      return res.status(400).json({ error: 'Missing fields in answer submission' });
-    }
-
-    const data = {
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
       playerId,
       gameCode,
       questionText,
       selectedAnswer,
       isCorrect,
-      score,
-      answeredAt: new Date(),
+      score: earned,
+    } = req.body as {
+      playerId: string;
+      gameCode: string;
+      questionText: string;
+      selectedAnswer: string;
+      isCorrect: boolean;
+      score: number;
     };
 
-    const ref = await db.collection('answers').add(data);
-    res.status(201).json({ id: ref.id, ...data });
+    // 1) record the raw answer
+    const answerRef = await db.collection('answers').add({
+      playerId,
+      gameCode,
+      questionText,
+      selectedAnswer,
+      isCorrect,
+      score: earned,
+      answeredAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // 2) upsert into "scores" collection
+    const scoreDocId = `${gameCode}_${playerId}`;
+    const scoreRef   = db.collection('scores').doc(scoreDocId);
+
+    // fetch name/avatar from players, but default if missing
+    const playerSnap = await db.collection('players').doc(playerId).get();
+    const playerData = playerSnap.exists
+      ? (playerSnap.data() as { name?: string; avatar?: string })
+      : {};
+    const name   = playerData.name   ?? 'Unknown';
+    const avatar = playerData.avatar ?? '🙂';
+
+    // set metadata if new, then increment
+    await scoreRef.set(
+      { gameCode, playerId, name, avatar },
+      { merge: true }
+    );
+    await scoreRef.update({
+      score: admin.firestore.FieldValue.increment(earned),
+    });
+
+    // 3) send back JSON only
+    res.status(201).json({ id: answerRef.id });
   })
 );
+
+// app.get(
+//   '/scoreboard/:gameCode',
+//   asyncHandler(async (req: Request, res: Response) => {
+//     // 1) grab all answers for this game
+//     const snapshot = await db
+//       .collection('answers')
+//       .where('gameCode', '==', req.params.gameCode)
+//       .get();
+
+//     // 2) build up a true numeric total per player
+//     const totals: Record<string, number> = {};
+//     snapshot.forEach((doc) => {
+//       const { playerId, score } = doc.data() as { playerId: string; score: number };
+//       // initialize once
+//       if (!(playerId in totals)) totals[playerId] = 0;
+//       // always add the actual score (even if it’s 0 or negative)
+//       const pts = Math.max(0, score || 0);
+//       totals[playerId] = (totals[playerId] || 0) + pts;
+
+//     });
+
+//     // 3) fetch the players in this game and join with our totals
+//     const playersSnapshot = await db
+//       .collection('players')
+//       .where('gameCode', '==', req.params.gameCode)
+//       .get();
+
+//     const scoreboard = playersSnapshot.docs.map((doc) => {
+//       const pid = doc.id;
+//       const data = doc.data();
+//       return {
+//         id: pid,
+//         name: data.name,
+//         avatar: data.avatar,
+//         score: totals[pid] ?? 0,
+//       };
+//     });
+
+//     // 4) sort descending, attach rank, and return
+//     const sorted = scoreboard.sort((a, b) => b.score - a.score);
+//     const ranked = sorted.map((player, idx) => ({
+//     ...player,
+//     rank: idx + 1
+//     }));
+//     res.status(200).json(ranked);
+
+//   })
+// );
 
 app.get(
   '/scoreboard/:gameCode',
   asyncHandler(async (req: Request, res: Response) => {
-    // 1) grab all answers for this game
-    const snapshot = await db
-      .collection('answers')
-      .where('gameCode', '==', req.params.gameCode)
+    const { gameCode } = req.params;
+
+    // 1) Query scores for this game, ordered descending
+    const snap = await db
+      .collection('scores')
+      .where('gameCode', '==', gameCode)
+      .orderBy('score', 'desc')
       .get();
 
-    // 2) build up a true numeric total per player
-    const totals: Record<string, number> = {};
-    snapshot.forEach((doc) => {
-      const { playerId, score } = doc.data() as { playerId: string; score: number };
-      // initialize once
-      if (!(playerId in totals)) totals[playerId] = 0;
-      // always add the actual score (even if it’s 0 or negative)
-      totals[playerId] += score;
-    });
-
-    // 3) fetch the players in this game and join with our totals
-    const playersSnapshot = await db
-      .collection('players')
-      .where('gameCode', '==', req.params.gameCode)
-      .get();
-
-    const scoreboard = playersSnapshot.docs.map((doc) => {
-      const pid = doc.id;
-      const data = doc.data();
+    // 2) Build the array our client expects
+    const board = snap.docs.map((doc, idx) => {
+      const { playerId, name, avatar, score } = doc.data();
       return {
-        id: pid,
-        name: data.name,
-        avatar: data.avatar,
-        score: totals[pid] ?? 0,
+        id:     playerId,
+        name,
+        avatar,
+        score,
+        rank:   idx + 1,
       };
     });
 
-    // 4) sort descending and return
-    res.status(200).json(scoreboard.sort((a, b) => b.score - a.score));
+    res.status(200).json(board);
   })
 );
 

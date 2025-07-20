@@ -1,3 +1,4 @@
+// src/components/PlayerJoin.tsx
 import { useState, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,36 +14,41 @@ export default function PlayerJoin() {
 
   // Join button handler
   const handleJoin = async () => {
-  if (!name || !gameCode) {
-    alert('Please enter name and game code');
-    return;
-  }
+    if (!name || !gameCode) {
+      alert('Please enter name and game code');
+      return;
+    }
 
-  try {
-    const res = await fetch('http://localhost:5000/players', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        gameCode,
-        avatar:
-          avatarType === 'emoji'
-            ? emojiAvatar
-            : `https://api.dicebear.com/6.x/thumbs/svg?seed=${name || 'player'}`,
-      }),
-    });
+    try {
+      const res = await fetch('http://localhost:5000/players', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          gameCode,
+          avatar:
+            avatarType === 'emoji'
+              ? emojiAvatar
+              : `https://api.dicebear.com/6.x/thumbs/svg?seed=${name || 'player'}`,
+        }),
+      });
 
-    if (!res.ok) throw new Error('Failed to join game');
+      if (!res.ok) throw new Error('Failed to join game');
 
-    const playerData = await res.json();
-    localStorage.setItem('playerInfo', JSON.stringify(playerData));
-    navigate(`/player-lobby/${gameCode}`);
-  } catch (err) {
-    console.error('Join error:', err);
-    alert('Failed to join game. Try again.');
-  }
-};
+      const { id, name: playerName, avatar } = await res.json();
 
+      // ✅ include gameCode so PlayerLobby can validate & display avatar correctly
+      localStorage.setItem(
+        'playerInfo',
+        JSON.stringify({ id, name: playerName, avatar, gameCode })
+      );
+
+      navigate(`/player-lobby/${gameCode}`);
+    } catch (err) {
+      console.error('Join error:', err);
+      alert('Failed to join game. Try again.');
+    }
+  };
 
   return (
     <div className="relative min-h-screen w-full bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white overflow-hidden flex items-center justify-center px-4 py-12">
@@ -101,9 +107,7 @@ export default function PlayerJoin() {
                 key={emoji}
                 onClick={() => setEmojiAvatar(emoji)}
                 className={`text-3xl p-2 rounded-xl border-2 transition hover:scale-110 ${
-                  emojiAvatar === emoji
-                    ? 'bg-pink-500 border-pink-300'
-                    : 'bg-white/10 border-transparent'
+                  emojiAvatar === emoji ? 'bg-pink-500 border-pink-300' : 'bg-white/10 border-transparent'
                 }`}
               >
                 {emoji}

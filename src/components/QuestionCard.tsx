@@ -145,3 +145,90 @@ export default function QuestionCard({
     </div>
   );
 }
+// src/components/QuestionCard.tsx
+// import React from 'react';
+
+// interface Question {
+//   text: string;
+//   type: 'mcq' | 'multi' | 'truefalse' | 'oneword';
+//   options?: string[];
+//   answer: string | string[];
+//   timerInSeconds?: number;
+// }
+
+// interface Props {
+//   question: Question;
+//   timeLeft: number;
+//   // onSelect etc not used on host
+// }
+
+// export default function QuestionCard({ question, timeLeft }: Props) {
+//   return (
+//     <div className="p-6 bg-white/5 rounded-2xl shadow-lg text-white max-w-3xl w-full">
+//       <div className="text-lg font-semibold mb-2">Time: {timeLeft}s</div>
+//       <h3 className="text-2xl font-bold mb-4">{question.text}</h3>
+
+//       {/* MULTI: display checkboxes with correct ones checked */}
+//       {question.type === 'multi' && question.options && (
+//         <div className="space-y-2 mb-4">
+//           {question.options.map((opt, i) => (
+//             <label key={i} className="flex items-center gap-2">
+//               <input
+//                 type="checkbox"
+//                 disabled
+//                 checked={Array.isArray(question.answer) && (question.answer as string[]).includes(opt)}
+//                 className="w-5 h-5 bg-white/20 text-green-400 rounded"
+//               />
+//               <span>{opt}</span>
+//             </label>
+//           ))}
+//         </div>
+//       )}
+
+//       {/* MCQ: show options (disabled) with the correct one highlighted */}
+//       {question.type === 'mcq' && question.options && (
+//         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+//           {question.options.map((opt, i) => {
+//             const isCorrect = opt === question.answer;
+//             return (
+//               <div
+//                 key={i}
+//                 className={`p-4 rounded-xl ${
+//                   isCorrect ? 'bg-green-600' : 'bg-white/10'
+//                 }`}
+//               >
+//                 {opt}
+//               </div>
+//             );
+//           })}
+//         </div>
+//       )}
+
+//       {/* TRUE/FALSE */}
+//       {question.type === 'truefalse' && (
+//         <div className="flex gap-4 mb-4">
+//           {['True', 'False'].map((opt) => {
+//             const isCorrect = opt === question.answer;
+//             return (
+//               <div
+//                 key={opt}
+//                 className={`p-4 rounded-xl ${
+//                   isCorrect ? 'bg-green-600' : 'bg-white/10'
+//                 }`}
+//               >
+//                 {opt}
+//               </div>
+//             );
+//           })}
+//         </div>
+//       )}
+
+//       {/* ONEWORD */}
+//       {question.type === 'oneword' && (
+//         <p className="italic mb-4">
+//           Correct answer: <strong>{question.answer as string}</strong>
+//         </p>
+//       )}
+//     </div>
+//   );
+// }

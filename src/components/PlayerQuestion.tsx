@@ -1,6 +1,6 @@
-import React from 'react';
+// src/components/PlayerQuestion.tsx
+import React, { useState, useEffect } from 'react';
 
-// Define the Question type (same as in FakePlayerQuestion)
 interface Question {
   text: string;
   type: 'mcq' | 'truefalse' | 'oneword';
@@ -8,7 +8,6 @@ interface Question {
   answer: string;
 }
 
-// Define the component props interface
 interface PlayerQuestionProps {
   question: Question;
   timeLeft: number;
@@ -29,130 +28,113 @@ export default function PlayerQuestion({
   streak,
   showCorrectAnswer,
   correctAnswer,
-}: PlayerQuestionProps): React.JSX.Element {
+}: PlayerQuestionProps) {
   return (
-    <div className="min-h-screen px-6 py-10 bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white font-poppins flex flex-col items-center justify-start">
-      {/* Timer */}
-      <div className="text-center mb-6 text-lg font-semibold tracking-wider text-cyan-300">
-        TIME REMAINING: <span className="text-3xl font-bold text-cyan-400">{timeLeft}s</span>
-      </div>
-
-      {/* Question */}
-      <h2 className="text-3xl font-bold mb-10 text-center max-w-3xl">
-        {question?.text || "Waiting for question..."}
-      </h2>
-
-      {/* MULTIPLE CHOICE */}
-      {question?.type === 'mcq' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl mb-8">
-          {question.options?.map((opt, idx) => {
-            const isSelected = selectedAnswer === opt;
-            const isCorrect = showCorrectAnswer && correctAnswer === opt;
-            const colorMap = [
-              "from-green-400 to-green-600",
-              "from-pink-400 to-pink-600",
-              "from-blue-400 to-blue-600",
-              "from-yellow-400 to-yellow-500"
-            ];
-            return (
-              <button
-                key={idx}
-                onClick={() => onSelect(opt)}
-                disabled={!!selectedAnswer || showCorrectAnswer}
-                className={`py-4 rounded-xl font-bold text-lg transition hover:scale-105 shadow-lg
-                  ${isCorrect ? "bg-green-600 ring-2 ring-white" :
-                  isSelected ? "bg-gray-800 ring-2 ring-white" :
-                  `bg-gradient-to-br ${colorMap[idx % 4]}`}`}
-              >
-                {opt}
-              </button>
-            );
-          })}
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white flex flex-col items-center justify-center px-6 py-12">
+      <div className="w-full max-w-4xl">
+        {/* Timer */}
+        <div className="mb-6 text-center text-lg font-semibold tracking-wide text-cyan-300">
+          TIME REMAINING: <span className="text-3xl font-bold text-cyan-400">{timeLeft}s</span>
         </div>
-      )}
 
-      {/* TRUE / FALSE */}
-      {question?.type === 'truefalse' && (
-        <div className="grid grid-cols-2 gap-6 w-full max-w-2xl mb-8">
-          {['True', 'False'].map((opt) => {
-            const isSelected = selectedAnswer === opt;
-            const isCorrect = showCorrectAnswer && correctAnswer === opt;
-            const gradient = opt === 'True'
-              ? "from-green-400 to-green-600"
-              : "from-red-400 to-red-600";
+        {/* Question */}
+        <h2 className="text-4xl font-bold mb-10 text-center">{question.text}</h2>
 
-            return (
-              <button
-                key={opt}
-                onClick={() => onSelect(opt)}
-                disabled={!!selectedAnswer || showCorrectAnswer}
-                className={`py-4 rounded-xl font-bold text-lg transition hover:scale-105 shadow-lg
-                  ${isCorrect ? "bg-green-600 ring-2 ring-white" :
-                  isSelected ? "bg-gray-800 ring-2 ring-white" :
-                  `bg-gradient-to-br ${gradient}`}`}
-              >
-                {opt}
-              </button>
-            );
-          })}
-        </div>
-      )}
+        {/* MULTIPLE CHOICE */}
+        {question.type === 'mcq' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            {question.options?.map((opt, idx) => {
+              const isSel = selectedAnswer === opt;
+              const isCorr = showCorrectAnswer && correctAnswer === opt;
+              const colors = ['bg-green-400/80','bg-pink-400/80','bg-blue-400/80','bg-yellow-400/80'];
+              return (
+                <button
+                  key={idx}
+                  onClick={() => onSelect(opt)}
+                  disabled={!!selectedAnswer || showCorrectAnswer}
+                  className={`w-full py-4 rounded-xl font-bold text-lg transition hover:scale-105 shadow-lg ${
+                    isCorr
+                      ? 'bg-green-600 ring-2 ring-white'
+                      : isSel
+                      ? 'bg-gray-800 ring-2 ring-white'
+                      : colors[idx % colors.length]
+                  }`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-      {/* ONE-WORD */}
-      {question?.type === 'oneword' && (
-        <div className="mb-8 w-full max-w-md">
-          <input
-  type="text"
-  placeholder="Type your answer and press Enter"
-  disabled={!!selectedAnswer || showCorrectAnswer}
-  className="w-full p-4 rounded-xl bg-white/10 text-white placeholder:text-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-  onKeyDown={(e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const value = (e.target as HTMLInputElement).value.trim();
-      if (value) onSelect(value);
-    }
-  }}
-/>
+        {/* TRUE / FALSE */}
+        {question.type === 'truefalse' && (
+          <div className="grid grid-cols-2 gap-6 mb-8">
+            {['True','False'].map((opt) => {
+              const isSel = selectedAnswer === opt;
+              const isCorr = showCorrectAnswer && correctAnswer === opt;
+              const grad = opt === 'True' ? 'bg-green-400/80' : 'bg-red-400/80';
+              return (
+                <button
+                  key={opt}
+                  onClick={() => onSelect(opt)}
+                  disabled={!!selectedAnswer || showCorrectAnswer}
+                  className={`w-full py-4 rounded-xl font-bold text-lg transition hover:scale-105 shadow-lg ${
+                    isCorr
+                      ? 'bg-green-600 ring-2 ring-white'
+                      : isSel
+                      ? 'bg-gray-800 ring-2 ring-white'
+                      : grad
+                  }`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-          {showCorrectAnswer && (
-            <p className="text-green-300 mt-3 font-semibold text-center">
-              ✅ Correct Answer: <span className="font-bold">{correctAnswer}</span>
-            </p>
-          )}
-        </div>
-      )}
+        {/* ONE-WORD */}
+        {question.type === 'oneword' && (
+          <div className="mb-8">
+            <input
+              type="text"
+              placeholder="Type your answer and press Enter"
+              disabled={!!selectedAnswer || showCorrectAnswer}
+              className="w-full p-4 rounded-xl bg-white/10 text-white placeholder-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const v = (e.target as HTMLInputElement).value.trim();
+                  if (v) onSelect(v);
+                }
+              }}
+            />
+            {showCorrectAnswer && (
+              <p className="mt-3 text-green-300 text-center">
+                ✅ Correct Answer: <span className="font-bold">{correctAnswer}</span>
+              </p>
+            )}
+          </div>
+        )}
 
-      {/* LIVE SCORE BAR */}
-      {score !== null && (
-        <div className="mb-8 w-full max-w-3xl text-left">
-          <p className="text-pink-300 font-bold mb-2">LIVE SCORE</p>
+        {/* LIVE SCORE BAR */}
+        <div className="mb-8">
+          <p className="font-bold text-pink-300 mb-2">LIVE SCORE</p>
           <div className="relative w-full h-4 bg-white/20 rounded-full overflow-hidden shadow-inner">
             <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-pink-500 via-orange-400 to-yellow-300 transition-all duration-300"
+              className="absolute inset-y-0 left-0 bg-gradient-to-r from-pink-500 via-orange-400 to-yellow-300 transition-all duration-300"
               style={{ width: `${Math.min(score, 100)}%` }}
             />
           </div>
-
-          <div className="flex justify-between text-2xl mt-2 px-2 animate-bounce">
-            <span>🎉</span>
-            <span>👏</span>
-            <span>🙌</span>
-          </div>
         </div>
-      )}
 
-      {/* STREAK DISPLAY */}
-      {streak > 1 && (
-        <div className="text-center mt-6 text-yellow-300 text-2xl font-bold animate-pulse flex flex-col items-center gap-2">
-          {streak}x STREAK! 🔥
-          <div className="flex gap-4 text-3xl animate-bounce">
-            <span>💥</span>
-            <span>🎯</span>
-            <span>🎉</span>
+        {/* STREAK */}
+        {streak > 1 && (
+          <div className="text-center text-yellow-300 text-2xl font-bold animate-pulse">
+            🔥 {streak}× STREAK!
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

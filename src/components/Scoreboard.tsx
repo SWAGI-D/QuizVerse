@@ -1,16 +1,14 @@
+// src/components/Scoreboard.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Toast from './Toast';
-
-// Define answer record structure
-interface AnswerRecord {
-  name: string;
-  score: number;
-}
+import axios from 'axios';
 
 interface PlayerScore {
+  id: string;
   name: string;
-  total: number;
+  avatar: string;
+  score: number;
 }
 
 export default function Scoreboard() {
@@ -19,30 +17,14 @@ export default function Scoreboard() {
   const [scores, setScores] = useState<PlayerScore[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-
   useEffect(() => {
-    const fetchScores = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/scoreboard/${gameCode}`);
-
-        if (!res.ok) throw new Error('Failed to load scores');
-        const data: AnswerRecord[] = await res.json();
-
-        // Group and sum scores per player
-        const scoreMap = new Map<string, number>();
-        for (const record of data) {
-          scoreMap.set(record.name, (scoreMap.get(record.name) || 0) + record.score);
-        }
-
-        const combined: PlayerScore[] = Array.from(scoreMap, ([name, total]) => ({ name, total }));
-        combined.sort((a, b) => b.total - a.total);
-        setScores(combined);
-      } catch (err) {
+    axios
+      .get<PlayerScore[]>(`http://localhost:5000/scoreboard/${gameCode}`)
+      .then((res) => setScores(res.data))
+      .catch((err) => {
         console.error('❌ Error fetching scoreboard:', err);
-      }
-    };
-
-    fetchScores();
+        setToast({ message: 'Failed to load scoreboard', type: 'error' });
+      });
   }, [gameCode]);
 
   const medals = ['🥇', '🥈', '🥉'];
@@ -52,9 +34,9 @@ export default function Scoreboard() {
       <h1 className="text-4xl font-bold mb-8 text-center">🏆 Final Scoreboard</h1>
 
       <div className="w-full max-w-2xl space-y-4">
-        {scores.map((player, idx) => (
+        {scores.map((p, idx) => (
           <div
-            key={idx}
+            key={p.id}
             className={`flex items-center justify-between px-6 py-4 rounded-xl shadow-lg transition
               ${
                 idx === 0
@@ -68,9 +50,14 @@ export default function Scoreboard() {
           >
             <div className="text-lg font-semibold flex items-center gap-3">
               {idx < 3 && <span className="text-2xl">{medals[idx]}</span>}
-              {player.name}
+              {p.avatar.startsWith('http') ? (
+                <img src={p.avatar} alt="" className="w-6 h-6 rounded-full" />
+              ) : (
+                <span className="text-2xl">{p.avatar}</span>
+              )}
+              {p.name}
             </div>
-            <div className="text-xl font-bold">{player.total} pts</div>
+            <div className="text-xl font-bold">{p.score} pts</div>
           </div>
         ))}
       </div>
@@ -83,27 +70,20 @@ export default function Scoreboard() {
           🔁 Play Again
         </button>
         <button
-  onClick={() => {
-    setToast({ message: 'Exiting to Dashboard...', type: 'info' });
-    setTimeout(() => {
-      setToast(null);
-      navigate('/dashboard');
-    }, 2000);
-  }}
-  className="bg-red-500 hover:bg-red-600 px-6 py-3 text-white rounded-full text-lg shadow transition"
->
-  🚪 Exit
-</button>
-
-
+          onClick={() => {
+            setToast({ message: 'Exiting to Dashboard...', type: 'info' });
+            setTimeout(() => {
+              setToast(null);
+              navigate('/dashboard');
+            }, 1000);
+          }}
+          className="bg-red-500 hover:bg-red-600 px-6 py-3 text-white rounded-full text-lg shadow transition"
+        >
+          🚪 Exit
+        </button>
       </div>
-      {toast && (
-  <Toast
-    message={toast.message}
-    type={toast.type}
-    onClose={() => setToast(null)}
-  />
-)}
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

@@ -1,5 +1,5 @@
-// src/components/PlayerGamePage.tsx
-import React, { useEffect, useRef, useState } from 'react';
+
+import React, { useEffect, useRef, useState, FC } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PlayerQuestion from './PlayerQuestion';
 import axios from 'axios';
@@ -26,69 +26,62 @@ interface GameDoc {
   gameEnded: boolean;
 }
 
-export default function PlayerGamePage(): React.JSX.Element {
+const PlayerGamePage: FC = () => {
   const { gameCode } = useParams<{ gameCode: string }>();
   const navigate = useNavigate();
+  const playerId = sessionStorage.getItem('playerId') || '';
 
   // Game state
   const [questionIndex, setQuestionIndex] = useState<number>(-1);
-  const [showScoreboard, setShowScoreboard] = useState<boolean>(false);
-  const [gameEnded, setGameEnded] = useState<boolean>(false);
-
-  // Track previous index to detect new questions
+  const [showScoreboard, setShowScoreboard] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
   const prevIndexRef = useRef<number>(-1);
 
-  // Quiz + current question
-  const [quizTitle, setQuizTitle] = useState<string>('Untitled Quiz');
-  const [quizLength, setQuizLength] = useState<number>(0);
+  // Quiz + question
+  const [quizTitle, setQuizTitle] = useState('Untitled Quiz');
   const [question, setQuestion] = useState<Question | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   // Player progress
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [score, setScore] = useState<number>(0);
-  const [streak, setStreak] = useState<number>(0);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   // Interim scores
   const [interimScores, setInterimScores] = useState<PlayerScore[]>([]);
 
-  // 1) Poll the game doc every 2s for questionIndex, showScoreboard, gameEnded
+  // 1) Poll game state
   useEffect(() => {
     if (!gameCode) return;
-    const iv = setInterval(async () => {
+    const interval = setInterval(async () => {
       try {
         const res = await fetch(`http://localhost:5000/games/${gameCode}`);
         const game = (await res.json()) as GameDoc;
-
-        // New question loaded
         if (game.questionIndex !== prevIndexRef.current) {
           prevIndexRef.current = game.questionIndex;
           setQuestionIndex(game.questionIndex);
           setShowScoreboard(false);
-        }
-        // Host revealed scoreboard
-        else if (game.showScoreboard && !showScoreboard) {
+        } else if (game.showScoreboard && !showScoreboard) {
           setShowScoreboard(true);
         }
-        // Game ended?
         if (game.gameEnded && !gameEnded) {
           setGameEnded(true);
         }
-      } catch (e) {
-        console.error('❌ Poll error:', e);
+      } catch (err) {
+        console.error('❌ Poll error:', err);
       }
     }, 2000);
-    return () => clearInterval(iv);
+    return () => clearInterval(interval);
   }, [gameCode, showScoreboard, gameEnded]);
 
-  // 2) Navigate to final scoreboard when gameEnded flips
+  // 2) Navigate to final scoreboard
   useEffect(() => {
     if (gameEnded && gameCode) {
       navigate(`/player/${gameCode}/scoreboard`);
     }
   }, [gameEnded, gameCode, navigate]);
 
-  // 3) Fetch quiz & current question when questionIndex changes
+  // 3) Load question
   useEffect(() => {
     if (!gameCode || questionIndex < 0) return;
     (async () => {
@@ -99,53 +92,46 @@ export default function PlayerGamePage(): React.JSX.Element {
         if (!qRes.ok) throw new Error('Quiz not found');
         const quiz = await qRes.json();
         setQuizTitle(quiz.title || 'Untitled Quiz');
-        setQuizLength(quiz.questions.length);
-        const q = quiz.questions[questionIndex];
-        setQuestion(q);
-        setTimeLeft(q.timerInSeconds ?? 30);
+        setQuestion(quiz.questions[questionIndex]);
+        setTimeLeft(quiz.questions[questionIndex].timerInSeconds ?? 30);
         setSelectedAnswer(null);
-      } catch (e) {
-        console.error('❌ Load question error:', e);
+      } catch (err) {
+        console.error('❌ Load question error:', err);
       }
     })();
   }, [gameCode, questionIndex]);
 
-  
-
-  // 4) Countdown before revealing scoreboard
+  // 4) Countdown
   useEffect(() => {
     if (showScoreboard || timeLeft <= 0) return;
-    const iv = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-    return () => clearInterval(iv);
+    const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(timer);
   }, [timeLeft, showScoreboard]);
 
-  // 5) Fetch interim scores as soon as showScoreboard is true
+  // 5) Fetch interim scores
   useEffect(() => {
     if (!showScoreboard || !gameCode) return;
-    axios
-      .get<PlayerScore[]>(`http://localhost:5000/scoreboard/${gameCode}`)
-      .then((r) => setInterimScores(r.data))
-      .catch((e) => console.error('❌ Interim fetch error:', e));
+    const iv = setInterval(() => {
+      axios.get<PlayerScore[]>(`http://localhost:5000/scoreboard/${gameCode}`)
+        .then((res) => setInterimScores(res.data.sort((a, b) => b.score - a.score)))
+        .catch((err) => console.error('❌ Interim fetch error:', err));
+    }, 2000);
+    return () => clearInterval(iv);
   }, [showScoreboard, gameCode]);
 
-
-
-  // Before game starts
   if (questionIndex === -1) {
     return (
       <div className="min-h-screen flex items-center justify-center text-yellow-300 animate-pulse">
-        Waiting for host to start the quiz...
+        Waiting for host to start...
       </div>
     );
   }
 
   return (
-    <div className="p-6 text-white">
-      <h2 className="text-2xl font-bold text-center text-pink-400 mb-4">
-        🎯 {quizTitle}
-      </h2>
+    <div className="p-6 text-white flex flex-col items-center">
+      <h2 className="text-2xl font-bold text-pink-400 mb-4">🎯 {quizTitle}</h2>
 
-      {/* 1) Live question */}
+      {/* Live question */}
       {!showScoreboard && question && (
         <PlayerQuestion
           question={question}
@@ -154,23 +140,16 @@ export default function PlayerGamePage(): React.JSX.Element {
           onSelect={async (answer) => {
             if (selectedAnswer) return;
             setSelectedAnswer(answer);
-
-            const player = JSON.parse(localStorage.getItem('playerInfo') || '{}');
             const isCorrect = answer === question.answer;
             const earned = isCorrect ? 100 + timeLeft * 2 : 0;
-            if (isCorrect) {
-              setScore((s) => s + earned);
-              setStreak((s) => s + 1);
-            } else {
-              setStreak(0);
-            }
-
+            if (isCorrect) setScore((s) => s + earned);
+            else setStreak(0);
             try {
               await fetch('http://localhost:5000/answers', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  playerId: player.id,
+                  playerId,
                   gameCode,
                   questionText: question.text,
                   selectedAnswer: answer,
@@ -178,8 +157,8 @@ export default function PlayerGamePage(): React.JSX.Element {
                   score: earned,
                 }),
               });
-            } catch (e) {
-              console.error('❌ Record answer error:', e);
+            } catch (err) {
+              console.error('❌ Record answer error:', err);
             }
           }}
           score={score}
@@ -189,30 +168,40 @@ export default function PlayerGamePage(): React.JSX.Element {
         />
       )}
 
-      {/* 2) Waiting for scoreboard */}
       {!showScoreboard && timeLeft <= 0 && (
-        <div className="text-center mt-6 text-gray-300">Waiting for scoreboard…</div>
+        <div className="mt-6 text-gray-300">Waiting for interim…</div>
       )}
 
-      {/* 3) Interim scoreboard */}
+      {/* Interim scoreboard styled like host */}
       {showScoreboard && (
-        + <div className="max-w-md mx-auto bg-purple-700/20 p-4 rounded-xl">
-          <h3 className="text-xl font-semibold text-center mb-2">📊 Interim Scores</h3>
-         <ul className="divide-y divide-purple-400/30">
-            {interimScores.map((p) => (
-              <li key={p.id} className="flex justify-between py-2">
-                <span>
+        <div className="flex flex-col items-center space-y-6 w-full">
+          <h3 className="text-3xl font-extrabold text-white">📊 Scoreboard</h3>
+          <div className="w-full max-w-3xl bg-purple-900/30 p-6 rounded-2xl shadow-lg">
+            {interimScores.map((p, idx) => (
+              <div
+                key={p.id}
+                className={`flex justify-between items-center py-4 px-5 mb-3 rounded-xl transition-colors ${
+                  idx === 0
+                    ? 'bg-purple-700'
+                    : idx === 1
+                    ? 'bg-purple-800'
+                    : idx === 2
+                    ? 'bg-purple-600'
+                    : 'bg-purple-900/50'
+                }`}
+              >
+                <span className="flex items-center gap-4 text-lg">
+                  {idx < 3 && ['🥇','🥈','🥉'][idx]}
                   {p.avatar} {p.name}
                 </span>
-                <span className="font-bold">{p.score} pts</span>
-              </li>
+                <span className="text-2xl font-bold">{p.score} pts</span>
+              </div>
             ))}
-          </ul>
-          <div className="mt-4 text-center text-sm text-gray-300">
-            Waiting for next question…
           </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default PlayerGamePage;
