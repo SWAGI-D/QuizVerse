@@ -17,7 +17,11 @@ import PlayerScoreboard from './components/PlayerScoreboard';
 import QuizPreview from './components/QuizPreview';
 import AuthPage from './components/AuthPage';
 import LoginForm from './components/LoginForm';
+<<<<<<< HEAD
 import TemplateGallery from './components/TemplateGallery'
+=======
+import TemplateGallery from './components/TemplateGallery';
+>>>>>>> c4d1fb4d1bb8de1173b18adaf8734f7bc74ad6c5
 
 
 export default function App(): React.JSX.Element {

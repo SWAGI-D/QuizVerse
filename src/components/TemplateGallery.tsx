@@ -68,3 +68,4 @@ const TemplateGallery: React.FC = () => {
 };
 
 export default TemplateGallery;
+

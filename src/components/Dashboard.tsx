@@ -41,6 +41,8 @@ export default function Dashboard() {
   }, []);
 
   const handleCreate = () => navigate('/host');
+
+  // Updated: Navigate to template gallery on button click
   const handleTemplate = () => navigate('/template-gallery');
 
   return (
