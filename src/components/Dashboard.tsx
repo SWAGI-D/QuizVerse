@@ -43,7 +43,7 @@ export default function Dashboard() {
   const handleCreate = () => navigate('/host');
 
   // Updated: Navigate to template gallery on button click
-  const handleTemplate = () => navigate('/template-gallery');
+  const handleTemplate = () => navigate('/templates');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white px-6 py-12">
@@ -65,12 +65,6 @@ export default function Dashboard() {
             📋 Choose a Template
           </button>
 
-           <button
-    onClick={() => navigate('/generate')}
-    className="bg-indigo-500 hover:bg-indigo-600 p-6 rounded-xl font-bold text-lg shadow-md transition"
-  >
-    🤖 Generate from Text
-  </button>
         </div>
 
         {/* Recent Quizzes */}

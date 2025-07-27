@@ -5,7 +5,6 @@ import admin from 'firebase-admin';
 import { Player } from './types/Player';
 import { Question, Quiz } from './types/Quiz';
 import bcrypt from 'bcryptjs';
-import axios from 'axios';
 
 const app = express();
 const PORT = 5000;
@@ -121,6 +120,7 @@ app.post(
     }
 
     const playerData: Player = { name, gameCode, avatar, joinedAt: new Date() };
+    
     const ref = await db.collection('players').add(playerData);
     res.status(201).json({ id: ref.id, ...playerData });
 
@@ -128,28 +128,97 @@ app.post(
   })
 );
 
+
+// app.post(
+//   '/quizzes',
+//   asyncHandler(async (req: { body: Quiz }, res: Response) => {
+//     const { title, code, createdAt, createdBy, questions } = req.body;
+//     if (!title || !code || !createdBy || !questions || questions.length === 0) {
+//       return res.status(400).json({ error: 'Missing required fields' });
+//     }
+
+//     const quizData: Quiz = {
+//       title,
+//       code,
+//       createdAt: new Date(createdAt),
+//       createdBy,
+//       questions,
+//     };
+
+//     const ref = await db.collection('quizzes').add(quizData);
+//     await ref.update({ id: ref.id });
+//     res.status(201).json({ id: ref.id, ...quizData });
+//   })
+// );
 app.post(
   '/quizzes',
-  asyncHandler(async (req: { body: Quiz }, res: Response) => {
-    const { title, code, createdAt, createdBy, questions } = req.body;
-    if (!title || !code || !createdBy || !questions || questions.length === 0) {
-      return res.status(400).json({ error: 'Missing required fields' });
+  asyncHandler(async (req: Request, res: Response) => {
+    // Tell TS this is our shared Quiz shape
+    const { title, code, createdAt, createdBy, questions, theme } = req.body as Quiz;
+
+    // Basic sanity checks
+    if (!title || !code || !createdBy || !questions?.length) {
+      return res.status(400).json({ error: 'Missing required quiz fields' });
     }
 
+    // Validate each question by its type
+    for (const q of questions) {
+      if (!q.text || !q.type) {
+        return res.status(400).json({ error: 'Each question needs text and type' });
+      }
+      switch (q.type) {
+        case 'mcq':
+        case 'truefalse':
+        case 'oneword':
+          if (typeof q.answer !== 'string') {
+            return res
+              .status(400)
+              .json({ error: `Question “${q.text}” must have a single string answer` });
+          }
+          break;
+
+        case 'selectall':
+          if (!Array.isArray(q.answer) || q.answer.length < 1) {
+            return res
+              .status(400)
+              .json({ error: `Question “${q.text}” must have an array of correct answers` });
+          }
+          if (!q.options || q.options.length < 2) {
+            return res
+              .status(400)
+              .json({ error: `Question “${q.text}” needs at least two options` });
+          }
+          break;
+
+        case 'match':
+          if (!q.matchPairs?.length) {
+            return res
+              .status(400)
+              .json({ error: `Question “${q.text}” must include matchPairs` });
+          }
+          break;
+
+        default:
+          return res
+            .status(400)
+            .json({ error: `Unsupported question type: ${q.type}` });
+      }
+    }
+
+    // If we get here, it’s valid — save it
     const quizData: Quiz = {
       title,
       code,
       createdAt: new Date(createdAt),
       createdBy,
       questions,
+      theme,
     };
-
     const ref = await db.collection('quizzes').add(quizData);
     await ref.update({ id: ref.id });
     res.status(201).json({ id: ref.id, ...quizData });
   })
 );
-
     
 
 app.get(

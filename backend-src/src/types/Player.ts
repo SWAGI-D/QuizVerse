@@ -3,4 +3,6 @@ export interface Player {
   gameCode: string;
   avatar: string;
   joinedAt: Date;
+  status?: 'active' | 'joinedLate' | 'leftEarly';
+  leftAt?: Date;
 }
