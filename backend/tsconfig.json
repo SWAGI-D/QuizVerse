@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "commonjs",
+    "baseUrl": ".",                         // ✅ allows root-based imports like 'types/Player'
+    "esModuleInterop": true,
+    "resolveJsonModule": true,             // ✅ fixes .json import error
+    "moduleResolution": "node",            // ✅ necessary for .ts + .json resolving
+    "strict": true,
+    "outDir": "dist",
+    "rootDir": "./"
+  },
+  "include": [
+    "./**/*.ts"
+  ]
+}
