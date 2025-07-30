@@ -224,7 +224,8 @@ export default function PlayerQuestion({
 
   return (
     
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-4xl bg-white/20 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-white/30 animate-fade-in">
+
         {/* Timer */}
         <div className="mb-6 text-center text-lg font-semibold tracking-wide text-cyan-300">
           TIME REMAINING: <span className="text-3xl font-bold text-cyan-400">{timeLeft}s</span>
