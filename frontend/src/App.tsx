@@ -8,7 +8,7 @@ import SignUpForm from './components/shared/SignUpForm';
 import QuizPreview from './components/shared/QuizPreview';
 import TemplateGallery from './components/shared/TemplateGallery';
 import Scoreboard from './components/shared/Scoreboard';
-
+import QuizVideo from './components/shared/QuizVideo';
 import HostDashboard from './components/host/HostDashboard';
 import HostLobby from './components/host/HostLobby';
 import HostQuestion from './components/host/HostQuestion';
@@ -40,6 +40,7 @@ export default function App(): React.JSX.Element {
         <Route path="/player-game/:gameCode" element={<PlayerGamePage />} />
         <Route path="/scoreboard/:gameCode" element={<Scoreboard />} />
         <Route path="/player/:gameCode/scoreboard" element={<PlayerScoreboard />} />
+        <Route path="/video" element={<QuizVideo />} />
         <Route path="/templates" element={<TemplateGallery />} />
 
       </Routes>
