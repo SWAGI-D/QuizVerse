@@ -1,0 +1,398 @@
+[
+  {
+    "time": 0.0,
+    "question": "  Our solar system is one of over 500 known solar systems in the entire Milky Way galaxy.  ",
+    "options": [
+      "Mercury",
+      "milky",
+      "Mars",
+      "Venus"
+    ],
+    "answer": "milky"
+  },
+  {
+    "time": 0.0,
+    "question": "The solar system came into being about 4.5 billion years ago when a cloud of _____",
+    "options": [
+      "Jupiter",
+      "interstellar",
+      "Venus",
+      "Mars"
+    ],
+    "answer": "interstellar"
+  },
+  {
+    "time": 16.04,
+    "question": "  gas and dust collapsed, resulting in a solar _____, a swirling disk of material that  collided to form the solar system.  ",
+    "options": [
+      "nebula",
+      "Mars",
+      "Jupiter",
+      "Venus"
+    ],
+    "answer": "nebula"
+  },
+  {
+    "time": 16.04,
+    "question": "The solar system is located in the Milky Way's Orion Star cluster.  ",
+    "options": [
+      "Mercury",
+      "orion",
+      "Mars",
+      "Venus"
+    ],
+    "answer": "orion"
+  },
+  {
+    "time": 16.04,
+    "question": "Only 15% of stars in the _____ host planetary systems, and one of those stars is our own",
+    "options": [
+      "Jupiter",
+      "Venus",
+      "Mercury",
+      "galaxy"
+    ],
+    "answer": "galaxy"
+  },
+  {
+    "time": 37.0,
+    "question": "_____.  ",
+    "options": [
+      "sun",
+      "Jupiter",
+      "Mercury",
+      "Venus"
+    ],
+    "answer": "sun"
+  },
+  {
+    "time": 37.0,
+    "question": "Revolving around the sun are 8 _____.  ",
+    "options": [
+      "Jupiter",
+      "Mercury",
+      "planets",
+      "Mars"
+    ],
+    "answer": "planets"
+  },
+  {
+    "time": 37.0,
+    "question": "The _____ are divided into 2 categories based on their composition, terrestrial and  Jovian.  ",
+    "options": [
+      "Mars",
+      "Jupiter",
+      "Venus",
+      "planets"
+    ],
+    "answer": "planets"
+  },
+  {
+    "time": 37.0,
+    "question": "Terrestrial _____, including Mercury, Venus, Earth, and Mars, are primarily made of rocky",
+    "options": [
+      "Mercury",
+      "Jupiter",
+      "planets",
+      "Mars"
+    ],
+    "answer": "planets"
+  },
+  {
+    "time": 55.08,
+    "question": "_____.  ",
+    "options": [
+      "Mercury",
+      "Mars",
+      "Jupiter",
+      "material"
+    ],
+    "answer": "material"
+  },
+  {
+    "time": 55.08,
+    "question": "Their surfaces are solid, they don't have ring systems, they have very few or no _____,  and they are relatively small.  ",
+    "options": [
+      "Mercury",
+      "Venus",
+      "moons",
+      "Mars"
+    ],
+    "answer": "moons"
+  },
+  {
+    "time": 55.08,
+    "question": "The _____ and closest to the sun is Mercury, which has the shortest orbit in the solar system",
+    "options": [
+      "Mercury",
+      "smallest",
+      "Mars",
+      "Jupiter"
+    ],
+    "answer": "smallest"
+  },
+  {
+    "time": 70.92,
+    "question": "  at about three Earth _____.  ",
+    "options": [
+      "Jupiter",
+      "Venus",
+      "Mercury",
+      "months"
+    ],
+    "answer": "months"
+  },
+  {
+    "time": 70.92,
+    "question": "Venus is the hottest planet, with temperatures of up to 867 degrees Fahrenheit, due to an  atmosphere of carbon dioxide and extensive lava flows.  ",
+    "options": [
+      "venus",
+      "Mars",
+      "Jupiter",
+      "Mercury"
+    ],
+    "answer": "venus"
+  },
+  {
+    "time": 70.92,
+    "question": "Next to this world of fire is a world of water, Earth.",
+    "options": [
+      "Mars",
+      "Venus",
+      "Mercury",
+      "earth"
+    ],
+    "answer": "earth"
+  },
+  {
+    "time": 88.32,
+    "question": "  The water systems on this planet help create the only known _____ in the universe  capable of sustaining life.  ",
+    "options": [
+      "Mercury",
+      "environment",
+      "Mars",
+      "Venus"
+    ],
+    "answer": "environment"
+  },
+  {
+    "time": 88.32,
+    "question": "The last of the terrestrial planets, Mars, might have also supported life about 3.7 billion  years ago, when the planet had a watery surface and moist atmosphere.",
+    "options": [
+      "mars",
+      "Venus",
+      "Jupiter",
+      "Mercury"
+    ],
+    "answer": "mars"
+  },
+  {
+    "time": 108.96000000000001,
+    "question": "  Beyond the four terrestrial _____ of the inner solar system lie the Jovian _____ of  the outer solar system.  ",
+    "options": [
+      "Jupiter",
+      "planets",
+      "Mercury",
+      "Venus"
+    ],
+    "answer": "planets"
+  },
+  {
+    "time": 108.96000000000001,
+    "question": "The Jovian planets include gas giants, Jupiter and Saturn, and ice giants, Uranus and Neptune.  ",
+    "options": [
+      "Mercury",
+      "jovian",
+      "Jupiter",
+      "Venus"
+    ],
+    "answer": "jovian"
+  },
+  {
+    "time": 108.96000000000001,
+    "question": "The gas giants are predominantly made of _____ and hydrogen, and the ice giants also contain",
+    "options": [
+      "Venus",
+      "Mercury",
+      "helium",
+      "Jupiter"
+    ],
+    "answer": "helium"
+  },
+  {
+    "time": 127.4,
+    "question": "  rock, ice, and a liquid mixture of water, methane, and _____.  ",
+    "options": [
+      "Mercury",
+      "ammonia",
+      "Venus",
+      "Jupiter"
+    ],
+    "answer": "ammonia"
+  },
+  {
+    "time": 127.4,
+    "question": "Several four Jovian _____ have multiple moons, sport ring systems, have no solid surface  and are immense.  ",
+    "options": [
+      "Venus",
+      "Jupiter",
+      "Mercury",
+      "planets"
+    ],
+    "answer": "planets"
+  },
+  {
+    "time": 127.4,
+    "question": "The largest Jovian is also the largest planet in the solar system, Jupiter.",
+    "options": [
+      "jovian",
+      "Jupiter",
+      "Mercury",
+      "Mars"
+    ],
+    "answer": "jovian"
+  },
+  {
+    "time": 146.6,
+    "question": "  Nearby is Saturn, the solar system's second largest planet.  ",
+    "options": [
+      "saturn",
+      "Mercury",
+      "Venus",
+      "Mars"
+    ],
+    "answer": "saturn"
+  },
+  {
+    "time": 146.6,
+    "question": "Its signature rings are wide enough to fit between Earth and the _____, but are fairly  a kilometer thick.  ",
+    "options": [
+      "Venus",
+      "moon",
+      "Mercury",
+      "Mars"
+    ],
+    "answer": "moon"
+  },
+  {
+    "time": 146.6,
+    "question": "Most Saturn are the ice giants Uranus and Neptune.",
+    "options": [
+      "Venus",
+      "Mercury",
+      "saturn",
+      "Mars"
+    ],
+    "answer": "saturn"
+  },
+  {
+    "time": 163.64000000000001,
+    "question": "  The slightly bigger of these ice giants, Uranus, is famous for rotating on its side.  ",
+    "options": [
+      "Jupiter",
+      "Venus",
+      "Mercury",
+      "uranus"
+    ],
+    "answer": "uranus"
+  },
+  {
+    "time": 163.64000000000001,
+    "question": "Next Uranus is Neptune, the outermost planet in the solar system, and also one of the  coldest.  ",
+    "options": [
+      "Mercury",
+      "Mars",
+      "uranus",
+      "Venus"
+    ],
+    "answer": "uranus"
+  },
+  {
+    "time": 163.64000000000001,
+    "question": "Orbiting the terrestrial planets is the _____ belt, a flat disk of rocky objects full",
+    "options": [
+      "Mercury",
+      "Mars",
+      "Jupiter",
+      "asteroid"
+    ],
+    "answer": "asteroid"
+  },
+  {
+    "time": 182.52,
+    "question": "  of remnants from the solar system's formation, from microscopic dust particles to the largest  known object, the _____ planet, series.  ",
+    "options": [
+      "Mercury",
+      "Mars",
+      "dwarf",
+      "Venus"
+    ],
+    "answer": "dwarf"
+  },
+  {
+    "time": 182.52,
+    "question": "Another disk of space debris lies much further out and orbits the Jovian planets, the",
+    "options": [
+      "Jupiter",
+      "Mars",
+      "Venus",
+      "jovian"
+    ],
+    "answer": "jovian"
+  },
+  {
+    "time": 197.96,
+    "question": "  icy _____.  ",
+    "options": [
+      "hyperbelt",
+      "Venus",
+      "Mercury",
+      "Mars"
+    ],
+    "answer": "hyperbelt"
+  },
+  {
+    "time": 197.96,
+    "question": "Apart from asteroids, the _____ is also home to dwarf planets such as Pluto and is  the birthplace of many comets.  ",
+    "options": [
+      "Venus",
+      "hyperbelt",
+      "Jupiter",
+      "Mercury"
+    ],
+    "answer": "hyperbelt"
+  },
+  {
+    "time": 197.96,
+    "question": "Beyond the _____ is the orc cloud, a vast spherical collection of icy debris.",
+    "options": [
+      "Venus",
+      "Mars",
+      "hyperbelt",
+      "Mercury"
+    ],
+    "answer": "hyperbelt"
+  },
+  {
+    "time": 213.8,
+    "question": "  It is considered the edge of the _____ system, since that is where the gravitational and  physical influences of the sun end.  ",
+    "options": [
+      "Jupiter",
+      "Mercury",
+      "Venus",
+      "solar"
+    ],
+    "answer": "solar"
+  },
+  {
+    "time": 213.8,
+    "question": "Our solar system's particular configuration of _____ and other celestial objects, all  revolving around a life-giving star, make it a special place to call home.",
+    "options": [
+      "planets",
+      "Jupiter",
+      "Mars",
+      "Mercury"
+    ],
+    "answer": "planets"
+  }
+]

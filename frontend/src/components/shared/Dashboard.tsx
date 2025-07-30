@@ -45,6 +45,8 @@ export default function Dashboard() {
   // Updated: Navigate to template gallery on button click
   const handleTemplate = () => navigate('/templates');
 
+   const handleVideo = () => navigate('/video');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white px-6 py-12">
       <div className="max-w-5xl mx-auto space-y-10">
@@ -63,6 +65,13 @@ export default function Dashboard() {
             className="bg-emerald-500 hover:bg-emerald-600 p-6 rounded-xl font-bold text-lg shadow-md transition"
           >
             📋 Choose a Template
+          </button>
+
+          <button
+            onClick={handleVideo}
+            className="bg-emerald-500 hover:bg-emerald-600 p-6 rounded-xl font-bold text-lg shadow-md transition"
+          >
+            📋 Quiz Video - Coming Soon
           </button>
 
         </div>
