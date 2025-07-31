@@ -18,6 +18,7 @@ interface QuizFromServer {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [recentQuizzes, setRecentQuizzes] = useState<Quiz[]>([]);
+  const handleForum = () => navigate('/forum');
 
   useEffect(() => {
     const host = JSON.parse(localStorage.getItem('hostInfo') || '{}');
@@ -66,6 +67,13 @@ export default function Dashboard() {
           >
             📋 Choose a Template
           </button>
+
+          <button
+  onClick={handleForum}
+  className="bg-indigo-500 hover:bg-indigo-600 p-6 rounded-xl font-bold text-lg shadow-md transition"
+>
+  💬 View Forum Posts
+</button>
 
           <button
             onClick={handleVideo}

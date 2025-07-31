@@ -5,6 +5,8 @@ import admin from 'firebase-admin';
 import { Player } from '../types/Player';
 import { Question, Quiz } from '../types/Quiz';
 import bcrypt from 'bcryptjs';
+import { ForumPost } from '../types/ForumPost';
+import { ForumComment } from '../types/ForumComment';
 
 const app = express();
 const PORT = 5000;
@@ -571,6 +573,113 @@ app.post(
       console.error('❌ MCQ generation error:', message);
       res.status(500).json({ error: 'MCQ generation failed', details: message });
     }
+  })
+);
+
+app.post('/forum/posts', asyncHandler(async (req: Request, res: Response) => {
+  const { title, content, type, createdBy } = req.body;
+
+  if (!title || !content || !type || !createdBy) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const newPost: ForumPost = {
+    id: '', // We'll fill this with the Firestore ID
+    title,
+    content,
+    type,
+    createdBy,
+    createdAt: admin.firestore.Timestamp.now(),
+
+  };
+
+  const docRef = await db.collection('forumPosts').add(newPost);
+  await docRef.update({ id: docRef.id }); // Set ID field
+  res.status(201).json({ id: docRef.id });
+}));
+
+app.get('/forum/posts', asyncHandler(async (_req: Request, res: Response) => {
+  const snapshot = await db.collection('forumPosts').orderBy('createdAt', 'desc').get();
+  const posts = snapshot.docs.map(doc => doc.data() as ForumPost);
+  res.json(posts);
+}));
+
+app.get('/forum/posts/:postId', asyncHandler(async (_req: Request, res: Response) => {
+  const docSnap = await db.collection('forumPosts').doc(_req.params.postId).get();
+  if (!docSnap.exists) return res.status(404).json({ error: 'Post not found' });
+  res.json(docSnap.data());
+}));
+
+app.post('/forum/posts/:postId/comments', asyncHandler(async (_req: Request, res: Response) => {
+  const { content, createdBy } = _req.body;
+  if (!content || !createdBy) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  const comment = {
+    id: '',
+    content,
+    createdBy,
+    createdAt: admin.firestore.Timestamp.now(),
+  };
+  const ref = await db
+    .collection('forumPosts')
+    .doc(_req.params.postId)
+    .collection('comments')
+    .add(comment);
+  await ref.update({ id: ref.id });
+  res.status(201).json({ id: ref.id });
+}));
+
+
+app.get('/forum/posts/:postId/comments', async (req, res) => {
+  const snap = await db
+    .collection('forumPosts')
+    .doc(req.params.postId)
+    .collection('comments')
+    .orderBy('createdAt')
+    .get();
+  const comments = snap.docs.map(doc => ({
+    ...doc.data(),
+    createdAt: doc.data().createdAt.toDate(),
+  }));
+  res.json(comments);
+});
+
+// POST a vote
+app.post(
+  '/forum/posts/:postId/vote',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { postId } = req.params;
+    const { optionIndex, voterId } = req.body;
+    if (optionIndex == null || !voterId) {
+      return res.status(400).json({ error: 'Missing optionIndex or voterId' });
+    }
+    // ← this will automatically create the votes subcollection
+    await db
+      .collection('forumPosts')
+      .doc(postId)
+      .collection('votes')
+      .add({
+        optionIndex,
+        voterId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    res.sendStatus(201);
+  })
+);
+
+// GET all votes
+app.get(
+  '/forum/posts/:postId/votes',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { postId } = req.params;
+    const snap = await db
+      .collection('forumPosts')
+      .doc(postId)
+      .collection('votes')
+      .get();
+    const votes = snap.docs.map((d) => d.data());
+    res.json(votes);
   })
 );
 

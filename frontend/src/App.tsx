@@ -18,6 +18,8 @@ import PlayerLobby from './components/player/PlayerLobby';
 import PlayerGamePage from './components/player/PlayerGamePage';
 import PlayerQuestion from './components/player/PlayerQuestion';
 import PlayerScoreboard from './components/player/PlayerScoreboard';
+import PostDetail from './components/host/PostDetail'; // adjust path as needed
+import HostForum from './components/host/HostForum';
 
 
 
@@ -42,6 +44,8 @@ export default function App(): React.JSX.Element {
         <Route path="/player/:gameCode/scoreboard" element={<PlayerScoreboard />} />
         <Route path="/video" element={<QuizVideo />} />
         <Route path="/templates" element={<TemplateGallery />} />
+        <Route path="/forum" element={<HostForum />} />
+          <Route path="/forum/:id" element={<PostDetail />} />
 
       </Routes>
     </Router>
